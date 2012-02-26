@@ -1,0 +1,183 @@
+#!/bin/bash --posix
+#
+##############################################################################
+# Copyright 2002-2011, LAMP/EPFL
+# Copyright 2011, JetBrains
+#
+# This is free software; see the distribution for copying conditions.
+# There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+##############################################################################
+
+cygwin=false;
+case "`uname`" in
+    CYGWIN*) cygwin=true ;;
+esac
+
+# Convert a file to an absolute path for the native platform
+function nativePath() {
+	local npath=`dirname "$1"`
+	npath=`cd "$npath"; pwd -P`
+    npath="$npath/`basename "$1"`"
+	
+	if $cygwin; then
+		npath=`cygpath --windows "$npath" | tr '\\\\' '/'`
+	fi
+	echo $npath
+}
+
+# Finding the root folder for this Kotlin distribution
+SOURCE=`which kotlinc`;
+SCRIPT=`basename "$SOURCE"`;
+while [ -h "$SOURCE" ]; do
+    SCRIPT=`basename "$SOURCE"`;
+    LOOKUP=`ls -ld "$SOURCE"`;
+    TARGET=`expr "$LOOKUP" : '.*-> \(.*\)$'`;
+    if expr "${TARGET:-.}/" : '/.*/$' > /dev/null; then
+        SOURCE=${TARGET:-.};
+    else
+        SOURCE=`dirname "$SOURCE"`/${TARGET:-.};
+    fi;
+done;
+
+KOTLIN_HOME=`dirname "$SOURCE"`
+KOTLIN_HOME=`cd "$KOTLIN_HOME"; pwd -P`
+KOTLIN_HOME=`cd "$KOTLIN_HOME"/..; pwd`
+
+# Remove spaces from KOTLIN_HOME on windows
+if $cygwin; then
+    KOTLIN_HOME=`cygpath --windows --short-name "$KOTLIN_HOME"`
+    KOTLIN_HOME=`cygpath --unix "$KOTLIN_HOME"`
+fi
+
+# Constructing the extension classpath
+TOOL_CLASSPATH="$KOTLIN_HOME"/lib/kotlin-runtime.jar
+
+[ -n "$JAVA_OPTS" ] || JAVA_OPTS="-Xmx256M -Xms32M"
+
+# break out -D and -J options and add them to JAVA_OPTS as well
+# so they reach the underlying JVM in time to do some good.  The
+# -D options will be available as system properties.
+declare -a java_args
+declare -a kotlin_args
+
+cmd=""
+scriptCp=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -D*)
+      # pass to kotlin as well: otherwise we lose it sometimes when we
+      # need it, e.g. communicating with a server compiler.
+      java_args=("${java_args[@]}" "$1")
+      # kotlin_args=("${kotlin_args[@]}" "$1")
+      shift
+      ;;
+    -cp)
+      scriptCp=$2
+      shift 2
+      ;;
+    -J*)
+      # as with -D, pass to scala even though it will almost
+      # never be used.
+      java_args=("${java_args[@]}" "${1:2}")
+      # kotlin_args=("${kotlin_args[@]}" "$1")
+      shift
+      ;;
+    *)
+      # First non-option is the executable. If it's a file then we need to replace it with 'namespace' as it will need to be compiled 
+      if [ "" = "$cmd" ]; then
+		cmd="$1"
+		if [ -f "$cmd" ]; then
+			kotlin_args=("${kotlin_args[@]}" "namespace")
+		else
+			kotlin_args=("${kotlin_args[@]}" "$1")
+	 	fi 
+	  else
+		kotlin_args=("${kotlin_args[@]}" "$1")
+	  fi
+      shift
+      ;;
+  esac
+done
+
+if [ "" = "$cmd" ]; then
+	echo "Usage: kotlin [-cp <classpath>] <script|source|module|className> [args...]"
+	exit 1
+fi
+
+# reset "$@" to the remaining args
+set -- "${kotlin_args[@]}"
+
+if [ -z "$JAVACMD" -a -n "$JAVA_HOME" -a -x "$JAVA_HOME/bin/java" ]; then
+    JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+# OS X uses TMPDIR, other variants use TMP
+[ -z "$TMPDIR" ] || temp="$TMPDIR"
+[ -z "$TMP" ] || temp="$TMP"
+
+# If the jar doesn't exist, compile it
+if [ -f "$cmd" ]; then
+	[ -n "$KOTLIN_SCRIPT_CACHE" ] || KOTLIN_SCRIPT_CACHE="$HOME/.kotlin-script-cache"
+	fullPath=`dirname "$cmd"`
+	fullPath=`cd "$fullPath"; pwd -P`
+	jarDir="$KOTLIN_SCRIPT_CACHE$fullPath"
+	fullPath="$fullPath/`basename "$cmd"`"
+
+	jar="$KOTLIN_SCRIPT_CACHE$fullPath.jar"
+
+	# If the jar doesn't exist, or the source is newer than the jar
+	if [[ (! -f "$jar") || ("$cmd" -nt "$jar") ]]; then
+		module="$cmd"
+
+		# If the command isn't a module, create one automatically
+		if [ `grep -c 'import kotlin.modules' "$cmd"` -eq 0 ]; then
+			line=`head -1 "$cmd"`
+
+			# If the command is a script, strip the script header and create a main method if necessary
+			if [ "#!" = ${line:0:2} ]; then
+				src="${temp}kotlin$$.kt"
+				if [ `grep -c 'fun main(' "$cmd"` -ne 0 ]; then
+					sed '1d' "$cmd" >> "$src"
+				else
+					echo 'fun main(args: Array<String>) {' > "$src"
+					sed '1d' "$cmd" >> "$src"
+					echo ' }' >> "$src"
+				fi
+				trap "rm \""$src\""" EXIT
+			fi
+
+			# Create a module, so the classpath can be applied
+			module="${temp}kotlin$$.kts"
+			echo "import kotlin.modules.*" > $module
+			echo "fun project() {" >> $module
+			echo "    module(\"mymodule\") {" >> $module
+			echo "        sources += \"$(nativePath "$src")\"" >> $module
+			for i in $(echo $scriptCp | tr ":" "\n"); do
+				i=$(nativePath "$i")
+				echo "        classpath += \"$i\"" >> $module
+			done
+			echo "    }" >> $module
+			echo "}" >> $module
+
+			# cat "$module"
+
+			trap "rm \""$module\""" EXIT
+		fi
+
+		set -e
+		mkdir -p "$jarDir"
+		# echo kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+		kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+	fi
+fi
+	
+classpath="${TOOL_CLASSPATH}:$jar:${scriptCp}"
+if $cygwin; then
+	classpath=`cygpath --windows --path "$classpath"`
+fi
+
+# echo "${JAVACMD:=java}" $JAVA_OPTS "${java_args[@]}" -cp "$classpath" "$@"	
+"${JAVACMD:=java}" $JAVA_OPTS "${java_args[@]}" -cp "$classpath" "$@"
+	
