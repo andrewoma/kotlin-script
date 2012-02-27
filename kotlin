@@ -102,8 +102,8 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "" = "$cmd" ]; then
-	echo "Usage: kotlin [-cp <classpath>] <script|source|module|className> [args...]"
-	exit 1
+    echo "Usage: kotlin [-cp <classpath>] <script|source|module|className> [args...]"
+    exit 1
 fi
 
 # reset "$@" to the remaining args
@@ -119,65 +119,65 @@ fi
 
 # If the jar doesn't exist, compile it
 if [ -f "$cmd" ]; then
-	[ -n "$KOTLIN_SCRIPT_CACHE" ] || KOTLIN_SCRIPT_CACHE="$HOME/.kotlin-script-cache"
-	fullPath=`dirname "$cmd"`
-	fullPath=`cd "$fullPath"; pwd -P`
-	jarDir="$KOTLIN_SCRIPT_CACHE$fullPath"
-	fullPath="$fullPath/`basename "$cmd"`"
+    [ -n "$KOTLIN_SCRIPT_CACHE" ] || KOTLIN_SCRIPT_CACHE="$HOME/.kotlin-script-cache"
+    fullPath=`dirname "$cmd"`
+    fullPath=`cd "$fullPath"; pwd -P`
+    jarDir="$KOTLIN_SCRIPT_CACHE$fullPath"
+    fullPath="$fullPath/`basename "$cmd"`"
 
-	jar="$KOTLIN_SCRIPT_CACHE$fullPath.jar"
+    jar="$KOTLIN_SCRIPT_CACHE$fullPath.jar"
 
-	# If the jar doesn't exist, or the source is newer than the jar
-	if [[ (! -f "$jar") || ("$cmd" -nt "$jar") ]]; then
-		module="$cmd"
+    # If the jar doesn't exist, or the source is newer than the jar
+    if [[ (! -f "$jar") || ("$cmd" -nt "$jar") ]]; then
+        module="$cmd"
 
-		# If the command isn't a module, create one automatically
-		if [ `grep -c 'import kotlin.modules' "$cmd"` -eq 0 ]; then
-			line=`head -1 "$cmd"`
+        # If the command isn't a module, create one automatically
+        if [ `grep -c 'import kotlin.modules' "$cmd"` -eq 0 ]; then
+            line=`head -1 "$cmd"`
 
-			# If the command is a script, strip the script header and create a main method if necessary
-			if [ "#!" = ${line:0:2} ]; then
-				src="${temp}kotlin$$.kt"
-				if [ `grep -c 'fun main(' "$cmd"` -ne 0 ]; then
-					sed '1d' "$cmd" >> "$src"
-				else
-					echo 'fun main(args: Array<String>) {' > "$src"
-					sed '1d' "$cmd" >> "$src"
-					echo ' }' >> "$src"
-				fi
-				trap "rm \""$src\""" EXIT
-			fi
+            # If the command is a script, strip the script header and create a main method if necessary
+            if [ "#!" = ${line:0:2} ]; then
+                src="${temp}kotlin$$.kt"
+                if [ `grep -c 'fun main(' "$cmd"` -ne 0 ]; then
+                    sed '1d' "$cmd" >> "$src"
+                else
+                    echo 'fun main(args: Array<String>) {' > "$src"
+                    sed '1d' "$cmd" >> "$src"
+                    echo ' }' >> "$src"
+                fi
+                trap "rm \""$src\""" EXIT
+            fi
 
-			# Create a module, so the classpath can be applied
-			module="${temp}kotlin$$.kts"
-			echo "import kotlin.modules.*" > $module
-			echo "fun project() {" >> $module
-			echo "    module(\"mymodule\") {" >> $module
-			echo "        sources += \"$(nativePath "$src")\"" >> $module
-			for i in $(echo $scriptCp | tr ":" "\n"); do
-				i=$(nativePath "$i")
-				echo "        classpath += \"$i\"" >> $module
-			done
-			echo "    }" >> $module
-			echo "}" >> $module
+            # Create a module, so the classpath can be applied
+            module="${temp}kotlin$$.kts"
+            echo "import kotlin.modules.*" > $module
+            echo "fun project() {" >> $module
+            echo "    module(\"mymodule\") {" >> $module
+            echo "        sources += \"$(nativePath "$src")\"" >> $module
+            for i in $(echo $scriptCp | tr ":" "\n"); do
+                i=$(nativePath "$i")
+                echo "        classpath += \"$i\"" >> $module
+            done
+            echo "    }" >> $module
+            echo "}" >> $module
 
-			# cat "$module"
+            # cat "$module"
 
-			trap "rm \""$module\""" EXIT
-		fi
+            trap "rm \""$module\""" EXIT
+        fi
 
-		set -e
-		mkdir -p "$jarDir"
-		# echo kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
-		kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
-	fi
+        set -e
+        mkdir -p "$jarDir"
+        # echo kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+    fi
 fi
-	
+
 classpath="${TOOL_CLASSPATH}:$jar:${scriptCp}"
 if $cygwin; then
-	classpath=`cygpath --windows --path "$classpath"`
+    classpath=`cygpath --windows --path "$classpath"`
 fi
 
 # echo "${JAVACMD:=java}" $JAVA_OPTS "${java_args[@]}" -cp "$classpath" "$@"	
 "${JAVACMD:=java}" $JAVA_OPTS "${java_args[@]}" -cp "$classpath" "$@"
-	
+
