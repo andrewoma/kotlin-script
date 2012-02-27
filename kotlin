@@ -16,14 +16,14 @@ esac
 
 # Convert a file to an absolute path for the native platform
 function nativePath() {
-	local npath=`dirname "$1"`
-	npath=`cd "$npath"; pwd -P`
+    local npath=`dirname "$1"`
+    npath=`cd "$npath"; pwd -P`
     npath="$npath/`basename "$1"`"
-	
-	if $cygwin; then
-		npath=`cygpath --windows "$npath" | tr '\\\\' '/'`
-	fi
-	echo $npath
+    
+    if $cygwin; then
+        npath=`cygpath --windows "$npath" | tr '\\\\' '/'`
+    fi
+    echo $npath
 }
 
 # Finding the root folder for this Kotlin distribution
@@ -87,15 +87,15 @@ while [ $# -gt 0 ]; do
     *)
       # First non-option is the executable. If it's a file then we need to replace it with 'namespace' as it will need to be compiled 
       if [ "" = "$cmd" ]; then
-		cmd="$1"
-		if [ -f "$cmd" ]; then
-			kotlin_args=("${kotlin_args[@]}" "namespace")
-		else
-			kotlin_args=("${kotlin_args[@]}" "$1")
-	 	fi 
-	  else
-		kotlin_args=("${kotlin_args[@]}" "$1")
-	  fi
+        cmd="$1"
+        if [ -f "$cmd" ]; then
+            kotlin_args=("${kotlin_args[@]}" "namespace")
+        else
+            kotlin_args=("${kotlin_args[@]}" "$1")
+        fi 
+      else
+        kotlin_args=("${kotlin_args[@]}" "$1")
+      fi
       shift
       ;;
   esac
@@ -178,6 +178,6 @@ if $cygwin; then
     classpath=`cygpath --windows --path "$classpath"`
 fi
 
-# echo "${JAVACMD:=java}" $JAVA_OPTS "${java_args[@]}" -cp "$classpath" "$@"	
+# echo "${JAVACMD:=java}" $JAVA_OPTS "${java_args[@]}" -cp "$classpath" "$@"    
 "${JAVACMD:=java}" $JAVA_OPTS "${java_args[@]}" -cp "$classpath" "$@"
 
