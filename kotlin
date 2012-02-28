@@ -136,17 +136,22 @@ if [ -f "$cmd" ]; then
             line=`head -1 "$cmd"`
 
             # If the command is a script, strip the script header and create a main method if necessary
+            src="$cmd"
             if [ "#!" = ${line:0:2} ]; then
+                sedOpts="1d"
+                [ "#!/bin/sh" != ${line:0:9} ] || sedOpts="/#!/,/!#/d"
                 src="${temp}kotlin$$.kt"
                 if [ `grep -c 'fun main(' "$cmd"` -ne 0 ]; then
-                    sed '1d' "$cmd" >> "$src"
+                    sed "$sedOpts" "$cmd" >> "$src"
                 else
                     echo 'fun main(args: Array<String>) {' > "$src"
-                    sed '1d' "$cmd" >> "$src"
+                    sed "$sedOpts" "$cmd" >> "$src"
                     echo ' }' >> "$src"
                 fi
                 trap "rm \""$src\""" EXIT
             fi
+            
+            # cat "$src"
 
             # Create a module, so the classpath can be applied
             module="${temp}kotlin$$.kts"

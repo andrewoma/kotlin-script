@@ -12,7 +12,7 @@ Provides scripting support for Kotlin on *nix-based systems. e.g.
 Installation
 ------------
 
-Assuming you have ~/bin in your PATH:
+Assuming you have ~/bin and kotlinc in your PATH:
 
     $ curl https://raw.github.com/andrewoma/kotlin-script/master/kotlin > ~/bin/kotlin && chmod u+x ~/bin/kotlin 
 
@@ -29,7 +29,7 @@ Features
 Limitations
 -----------
 
-* Cygwin support is currrently broken as the kotlinc command in the kotlin distribution is broken (See http://youtrack.jetbrains.com/issue/KT-1470)
+* Cygwin support is currrently broken as the kotlinc command in the kotlin distribution is broken (See http://youtrack.jetbrains.com/issue/KT-1470). Even when this is fixed cygwin is barely usable as the script is slow due to the high overhead of launching processes under Windows. 
 
 Examples
 --------
@@ -50,9 +50,11 @@ A script with an explicit main method:
     	}
     }
 
-A script using a classpath:
+A script using a classpath. Note: Using #!/usr/bin/env with options does not work across platforms. Either the actual path to the command must be used, or using indirection as shown below.
 
-    #!/usr/bin/env kotlin -DmySysProp=somevalue -cp log4j-1.2.14.jar
+    #!/bin/sh 
+    exec kotlin -DmySysProp=somevalue -cp log4j-1.2.14.jar "$0" "$@"
+    !#
     import org.apache.log4j.*
 
     val logger = Logger.getLogger("mymodule").sure();
@@ -65,6 +67,7 @@ A script using a classpath:
 Running a standard kotlin source file:
 
     $ kotlin mykotlinfile.kt
-
     
-
+Alternatives
+------------
+Aztec (https://github.com/kondratovich/aztec) seems to be a Python based alternative
