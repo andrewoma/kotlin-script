@@ -114,8 +114,8 @@ if [ -z "$JAVACMD" -a -n "$JAVA_HOME" -a -x "$JAVA_HOME/bin/java" ]; then
 fi
 
 # OS X uses TMPDIR, other variants use TMP
-[ -z "$TMPDIR" ] || temp="$TMPDIR"
-[ -z "$TMP" ] || temp="$TMP"
+[ -z "$TMPDIR" ] || temp="$TMPDIR/"
+[ -z "$TMP" ] || temp="$TMP/"
 
 # If the jar doesn't exist, compile it
 if [ -f "$cmd" ]; then
