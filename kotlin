@@ -113,9 +113,10 @@ if [ -z "$JAVACMD" -a -n "$JAVA_HOME" -a -x "$JAVA_HOME/bin/java" ]; then
     JAVACMD="$JAVA_HOME/bin/java"
 fi
 
-# OS X uses TMPDIR, other variants use TMP
+# OS X uses TMPDIR, other variants use TMP, others none
 [ -z "$TMPDIR" ] || temp="$TMPDIR/"
 [ -z "$TMP" ] || temp="$TMP/"
+[ -n "$temp" ] || temp="/tmp/"
 
 # If the jar doesn't exist, compile it
 if [ -f "$cmd" ]; then
@@ -148,7 +149,7 @@ if [ -f "$cmd" ]; then
                     sed "$sedOpts" "$cmd" >> "$src"
                     echo ' }' >> "$src"
                 fi
-                trap "rm \""$src\""" EXIT
+                delSrc="\"$src\""
             fi
             
             # cat "$src"
@@ -168,7 +169,7 @@ if [ -f "$cmd" ]; then
 
             # cat "$module"
 
-            trap "rm \""$module\""" EXIT
+            trap "rm \""$module\"" "$delSrc"" EXIT
         fi
 
         set -e
