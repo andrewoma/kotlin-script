@@ -1,0 +1,332 @@
+#!/usr/bin/ruby -w
+
+# == Synopsis 
+#   mvncp is a ruby script for setting a Java classpath from a Maven repository.
+#   It accepts a set of Maven ids of dependencies and resolves them to a 
+#   classpath suitable for use with 'java -cp' (it will download if necessary).  
+#
+#   It's main motivation is to support Scala scripting, allowing the classpath
+#   to be set inline within Scala script headers (similar to 'grape' for Groovy). 
+#
+#   It requires Maven to be installed to resolve dependencies, ruby for the 
+#   script itself and optionally unzip.
+#
+#   Features:
+#   - Support for transitive Maven depenendencies (including exclusions)
+#   - Caching of dependency requests (cached requests take around 30ms)
+#   - Automatic Scala version detection (and name mangling as per sbt)
+#   - Conflict detection for scala libraries with respect to the scala version
+#   - Display of the dependency 'tree' of transitive dependencies
+#
+# == Examples
+#   Return the classpath for log4j (downloading it first if required).
+#     $ mvncp log4j:log4j:1.2.14
+#     => 
+#   
+#   Display the dependency tree for 
+#
+# == Usage 
+#   mvncp [options] <id1> [id2] ... [idn]
+# 
+#   where an id is in the format:
+#     groupId:[:]artifactId:version[:classifier][exclusion1..n]
+#
+#   where an exclusion is in the format:
+#     !groupdId:[:]artifactId 
+#
+#   Using '::' between the groupId and artifactId will cause the '_<scala version>'
+#   to be appended automatically to the artifactId (like %% in sbt)
+#   
+#   For help use: mvncp -h
+#
+# == Options
+#   -h, --help             Displays help message
+#   -t, --tree             Show the dependencies as a tree
+#   --no-cache             Bypass the cache, forcing resolution by maven
+#   --clear-cache          Delete the cache
+#   --template <template>  A pom.xml template to use to resolve dependencies
+#                          It should contain an empty <dependencies></dependencies>
+#                          section. Useful for adding repositories
+# == Limitations
+#   - Requires a unix-like OS (Tested on OS X and cygwin under Windows)
+#   - Maven SNAPSHOT versions won't be updated after initial resolution as 
+#     the classpath is subsequently cached. Use the '--no-cache' option to force
+#     Maven to resolve them again.
+#   - It works by munging Maven output, so it may be fragile.
+#
+# == Environment varibles
+#    SCALA_VERSION can be set to override automatic detection. 
+#    MVNCP_TEMPLATE can be set to override the inbuilt pom.xml template. 
+# 
+# == Author
+#   Andrew O'Malley
+#
+# == Copyright
+#   Copyright (c) 2010 Andrew O'Malley. Licensed under the MIT License:
+#   http://www.opensource.org/licenses/mit-license.php
+
+require 'pathname'
+require 'tempfile'
+require 'fileutils'
+require 'digest/md5'
+require 'optparse'
+require 'ostruct'
+
+# Stores resolved dependencies
+class Dependencies
+  attr_reader :classpath, :tree
+  def initialize(classpath, tree)
+    @classpath = classpath
+    @tree = tree
+  end
+  def valid?
+    @classpath && @tree
+  end
+end
+
+def find_scala_version(home)
+  scala_jar = File.join(home, "lib", "scala-library.jar")
+  raise "Scala library could not be located at #{scala_jar}" unless File.exists?(scala_jar)
+
+  # Dir.mktmpdir is not available in 1.8.6, so do something manually
+  temp = File.join(Dir.tmpdir, "__mvncp__temp__" + Process.pid.to_s)
+  FileUtils.rm_rf temp
+
+  begin
+    Dir.mkdir temp
+
+    # Use native 'unzip', as 'jar' is *really* slow
+    `unzip "#{scala_jar}" library.properties -d "#{temp}"`
+    # Fall back to craptastic 'jar' if unzip fails (probably due to not being available)
+    # `jar ` if $?.to_i !=0
+    
+    File.open(File.join(temp, "library.properties")).each_line do |line|
+      return $1 if line =~ /^version\.number=(.*)$/
+    end
+  ensure
+    FileUtils.rm_rf temp
+  end
+
+  nil
+end
+
+# Get the scala home dir, removing any symlinks 
+def find_scala_home
+  scala = which("scala")
+  raise "Cannot locate 'scala' on the PATH" unless scala 
+  Pathname.new(File.join(scala, "..", "..")).realpath.to_s 
+end
+
+def which(command)
+  ENV['PATH'].split(File::PATH_SEPARATOR).each do |dir| 
+    file = File.join(dir, command)
+    return file if File.exists?(file) || File.exists?(file + ".bat")
+  end
+  nil
+end
+
+def generate_pom(ids)
+  template = <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>dummy</groupId>
+  <artifactId>dummy</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <repositories>
+    <repository>
+      <id>scala</id>
+      <name>Scala Tools</name>
+      <url>http://scala-tools.org/repo-releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>snapshots.scala-tools.org</id>
+      <name>Scala Tools Snapshots</name>
+      <url>http://scala-tools.org/repo-snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
+  <dependencies>
+  </dependencies>
+</project>
+EOF
+
+  projectTokens = template.split(/<dependencies>/m)
+  project = projectTokens[0] << "<dependencies>\n"
+  ids.each do |id|
+    tokens = id.split(/:/)
+    raise "Invalid id: #{id}" unless tokens.size == 3 || tokens.size == 4
+
+    project << "<dependency>\n"
+    project << "<groupId>#{tokens[0]}</groupId>\n"
+    project << "<artifactId>#{tokens[1]}</artifactId>\n"
+    project << "<version>#{tokens[2]}</version>\n"
+    project << "<classifier>#{tokens[3]}</classifier>\n" if tokens.size == 4
+    project << "</dependency>\n\n"
+  end
+  project << projectTokens[1]
+  project
+end
+
+def run_maven(pom, goal)
+  temp = Tempfile.new('__mvncp__temp__')
+  File.open(temp.path, 'w') { |f| f.write(pom) }
+  `mvn -f '#{temp.path}' #{goal}`
+end
+
+
+def resolveDependenciesFromMaven(ids)
+  pom = generate_pom(ids)
+  out = run_maven(pom, "dependency:build-classpath dependency:tree")
+  if out =~ /.*?\[INFO\] Dependencies classpath:(.*?)\[INFO\].*?dummy:dummy:jar:1.0-SNAPSHOT(.*?)\[INFO\] ----/m
+    tree = []
+    classpath = $1.strip
+
+    temp = " " + $2.gsub(/\[INFO\]/, "").strip # Get rid of [INFO] prefixes
+    temp.each_line do |line| 
+      line = line[4..-1].gsub(/\:compile$/, "") # Get rid of padding and compile suffix
+      line = "".ljust($1.length) + $2 if line =~ /(^[ \|\-+\\]+)(.+)/ # Get rid of noisy ascii tree characters
+      tree.push(line.rstrip) 
+      # TODO: maybe parse the tree into a real tree?
+    end
+#    mavenError("Unable to resolve dependencies:", pom, out)
+    return Dependencies.new(classpath, tree)
+  else
+    mavenError("Unable to resolve dependencies:", pom, out)
+  end
+end
+
+def mavenError(message, pom, out)
+  puts "\n=== Generated POM =========================================\n#{pom}"
+  puts "\n=== Maven output ==========================================\n#{out}"
+  exit(1)
+end  
+
+# TODO: Allow concurrent reads and work out how portable this stuff is
+def withCache(file, mode)
+  File.open(file, mode) do |f|
+    begin
+      f.flock(File::LOCK_EX)
+      yield f
+    ensure
+      f.flock(File::LOCK_UN)
+    end
+  end
+end
+
+def loadCache(file)
+  cache = {}
+  return cache unless File.exists?(file)
+  withCache(file, "r") do |f|
+    f.each_line do |line|
+      cache[$1.strip] = $2 if line =~ /([^=]*)=(.*)/
+    end
+  end
+  cache
+end
+
+def appendToCache(file, map)
+  withCache(file, "a") do |f|
+    map.each_pair do |key, value| 
+      f.write(key + "=" + value + "\n")
+    end
+  end
+end
+
+def usage(message = nil)
+  # Only require rdoc/usage on demand as it adds around 130ms overhead 
+  puts message if message
+  require 'rdoc/usage'
+  RDoc::usage("Usage")
+end
+
+def parseOptions(args)
+  options = OpenStruct.new
+  options.verbose = false
+  options.tree = false
+  options.scala = false
+  options.force = false
+  options.useCache = true
+  options.scalaVersion = nil
+  
+  opts = OptionParser.new do |opts|
+    opts.on('-h', '--help')          { require 'rdoc/usage'; RDoc::usage() }
+    opts.on('-V', '--verbose')       { options.verbose = true }  
+    opts.on('-t', '--tree')          { options.tree = true }  
+    opts.on('-s', '--scala')         { options.scala = true }  
+    opts.on('-f', '--force')         { options.force = true }  
+    opts.on('-x', '--no-cache')      { options.useCache = false }  
+    opts.on('-S', '--scala-version') { options.scalaVersion = "2.8" }  
+  end
+  
+  begin
+    opts.parse!(args)
+  rescue
+    puts $!
+    usage
+  end
+  options
+end
+
+def resolveDependencies(ids, useCache)
+  return resolveDependenciesFromMaven(ids) if !useCache
+
+  # Try to get from cache
+  cacheFile = "/tmp/jvmcpcache.txt"
+  cache = loadCache(cacheFile)
+  key = Digest::MD5.hexdigest(ids.join("&"))
+  tree = cache[key + ".tree"]
+  dependencies = Dependencies.new(cache[key + ".path"], tree && tree.split(/\t/))
+
+  return dependencies if dependencies.valid?
+    
+  # Cache miss => resolve from Maven and cache
+  dependencies = resolveDependenciesFromMaven(ids)
+  appendToCache(cacheFile, { key + ".path" => dependencies.classpath, key + ".tree" => dependencies.tree.join("\t") })
+  dependencies
+end
+
+def insertScalaVersion(id, scalaVersion)
+  tokens = id.split(/:/)
+  usage("Invalid id: #{id}") if tokens.size < 2
+  tokens.delete_at(1)
+  tokens[1] = tokens[1] + "_" + scalaVersion
+  tokens.join(":")
+end
+
+options = parseOptions(ARGV)
+ids = ARGV # Remaining args
+usage unless ids.size > 0
+
+# Automatically turn on scala mode if "::" detected in ids
+options.scala = options.scala || (ids.select { |id| id =~ /^[^:]+::/ }).size > 0 
+
+# Get the scala version if required
+scalaVersion = options.scalaVersion || ENV['SCALA_VERSION'] || find_scala_version(find_scala_home) if options.scala
+
+# Expand ids using "::" syntax with scala version ala sbt
+ids = ids.map { |id| id =~ /^[^:]+::/ ? insertScalaVersion(id, scalaVersion) : id }
+
+dependencies = resolveDependencies(ids, options.useCache)
+
+# puts "***" + find_scala_home
+if (options.tree)
+  dependencies.tree.each { |line| puts line }
+else
+  puts dependencies.classpath
+end

@@ -68,6 +68,41 @@ Running a standard kotlin source file:
 
     $ kotlin mykotlinfile.kt
     
+mvncp
+-----
+
+In response to #1, I've included mvncp in the extras folder. mvncp is a utility that can resolve classpaths from maven repositories (automatically downloading and resolving transitive dependencies if required).
+It requires ruby and maven to be installed and included in your PATH.
+
+Example: resolving a classpath
+
+    $ mvncp org.springframework:spring-core:3.1.1.RELEASE
+
+Will write write the following to the stdout
+
+    /Users/andrew/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar:/Users/andrew/.m2/repository/org/springframework/spring-asm/3.1.1.RELEASE/spring-asm-3.1.1.RELEASE.jar:/Users/andrew/.m2/repository/org/springframework/spring-core/3.1.1.RELEASE/spring-core-3.1.1.RELEASE.jar
+
+Example: show the dependency tree
+
+    $ mvncp --tree org.springframework:spring-core:3.1.1.RELEASE
+    org.springframework:spring-core:jar:3.1.1.RELEASE
+       org.springframework:spring-asm:jar:3.1.1.RELEASE
+       commons-logging:commons-logging:jar:1.1.1
+
+mvncp can be used in conjunction with the kotlin script as follows:
+
+    #!/bin/sh 
+    exec kotlin -DmySysProp=somevalue -cp `mvncp log4j:log4j:1.2.14` "$0" "$@"
+    !#
+    import org.apache.log4j.*
+
+    val logger = Logger.getLogger("mymodule").sure();
+
+    fun main(args: Array<String>) {
+        BasicConfigurator.configure();
+        logger.info("Hello from Kotlin via log4j! mySysProp=${System.getProperty("mySysProp")}")
+    }
+
 Alternatives
 ------------
 Aztec (https://github.com/kondratovich/aztec) seems to be a Python based alternative
