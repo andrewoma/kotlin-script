@@ -89,7 +89,12 @@ while [ $# -gt 0 ]; do
       if [ "" = "$cmd" ]; then
         cmd="$1"
         if [ -f "$cmd" ]; then
-            kotlin_args=("${kotlin_args[@]}" "namespace")
+            namespace="namespace"
+            package=`grep package $cmd | awk '{print $2}'`
+            if [ -n "$package" ]; then
+                namespace="$package.$namespace"
+            fi
+            kotlin_args=("${kotlin_args[@]}" $namespace)
         else
             kotlin_args=("${kotlin_args[@]}" "$1")
         fi 
