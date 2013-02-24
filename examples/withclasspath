@@ -3,7 +3,7 @@ exec kotlin -DmySysProp=somevalue -cp log4j-1.2.14.jar "$0" "$@"
 !#
 import org.apache.log4j.*
 
-val logger = Logger.getLogger("mymodule").sure();
+val logger = Logger.getLogger("mymodule")!!;
 
 fun main(args: Array<String>) {
     BasicConfigurator.configure();

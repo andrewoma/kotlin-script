@@ -27,7 +27,7 @@ function nativePath() {
 }
 
 # Finding the root folder for this Kotlin distribution
-SOURCE=`which kotlinc`;
+SOURCE=`which kotlinc-jvm`;
 SCRIPT=`basename "$SOURCE"`;
 while [ -h "$SOURCE" ]; do
     SCRIPT=`basename "$SOURCE"`;
@@ -49,6 +49,8 @@ if $cygwin; then
     KOTLIN_HOME=`cygpath --windows --short-name "$KOTLIN_HOME"`
     KOTLIN_HOME=`cygpath --unix "$KOTLIN_HOME"`
 fi
+
+# echo "KOTLIN_HOME=$KOTLIN_HOME"
 
 # Constructing the extension classpath
 TOOL_CLASSPATH="$KOTLIN_HOME"/lib/kotlin-runtime.jar
@@ -85,11 +87,11 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     *)
-      # First non-option is the executable. If it's a file then we need to replace it with 'namespace' as it will need to be compiled 
+      # First non-option is the executable. If it's a file then we need to replace it with '_DefaultPackage' as it will need to be compiled 
       if [ "" = "$cmd" ]; then
         cmd="$1"
         if [ -f "$cmd" ]; then
-            kotlin_args=("${kotlin_args[@]}" "namespace")
+            kotlin_args=("${kotlin_args[@]}" "_DefaultPackage")
         else
             kotlin_args=("${kotlin_args[@]}" "$1")
         fi 
@@ -174,8 +176,8 @@ if [ -f "$cmd" ]; then
 
         set -e
         mkdir -p "$jarDir"
-        # echo kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
-        kotlinc -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        # echo kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
     fi
 fi
 
