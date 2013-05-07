@@ -65,6 +65,7 @@ declare -a kotlin_args
 
 cmd=""
 scriptCp=""
+profile_preloader="notime"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -80,10 +81,14 @@ while [ $# -gt 0 ]; do
       shift 2
       ;;
     -J*)
-      # as with -D, pass to scala even though it will almost
+      # as with -D, pass to kotlin even though it will almost
       # never be used.
       java_args=("${java_args[@]}" "${1:2}")
       # kotlin_args=("${kotlin_args[@]}" "$1")
+      shift
+      ;;
+    -pp)
+      profile_preloader="time"
       shift
       ;;
     *)
@@ -104,7 +109,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "" = "$cmd" ]; then
-    echo "Usage: kotlin [-cp <classpath>] <script|source|module|className> [args...]"
+    echo "Usage: kotlin [-cp <classpath>] [-pp] <script|source|module|className> [args...]"
     exit 1
 fi
 
@@ -176,8 +181,8 @@ if [ -f "$cmd" ]; then
 
         set -e
         mkdir -p "$jarDir"
-        # echo kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
-        kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        # echo kotlinc-jvm $profile_preloader -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        kotlinc-jvm $profile_preloader -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
     fi
 fi
 
