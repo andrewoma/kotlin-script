@@ -65,7 +65,6 @@ declare -a kotlin_args
 
 cmd=""
 scriptCp=""
-profile_preloader="notime"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -87,10 +86,6 @@ while [ $# -gt 0 ]; do
       # kotlin_args=("${kotlin_args[@]}" "$1")
       shift
       ;;
-    -pp)
-      profile_preloader="time"
-      shift
-      ;;
     *)
       # First non-option is the executable. If it's a file then we need to replace it with '_DefaultPackage' as it will need to be compiled 
       if [ "" = "$cmd" ]; then
@@ -109,7 +104,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "" = "$cmd" ]; then
-    echo "Usage: kotlin [-cp <classpath>] [-pp] <script|source|module|className> [args...]"
+    echo "Usage: kotlin [-cp <classpath>] <script|source|module|className> [args...]"
     exit 1
 fi
 
@@ -181,8 +176,8 @@ if [ -f "$cmd" ]; then
 
         set -e
         mkdir -p "$jarDir"
-        # echo kotlinc-jvm $profile_preloader -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
-        kotlinc-jvm $profile_preloader -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        # echo kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
     fi
 fi
 
