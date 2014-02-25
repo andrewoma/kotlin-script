@@ -160,7 +160,7 @@ if [ -f "$cmd" ]; then
             module="${temp}kotlin$$.kts"
             echo "import kotlin.modules.*" > $module
             echo "fun project() {" >> $module
-            echo "    module(\"mymodule\") {" >> $module
+            echo "    module(\"mymodule\", \"${temp}\") {" >> $module
             echo "        sources += \"$(nativePath "$src")\"" >> $module
             for i in $(echo $scriptCp | tr ":" "\n"); do
                 i=$(nativePath "$i")

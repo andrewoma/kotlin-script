@@ -1,7 +1,7 @@
 import kotlin.modules.*
  
 fun project() {
-    module("mymodule") {
+    module("mymodule", ".") {
         sources += "standardsource.kt"
     }
 }
