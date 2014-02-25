@@ -29,7 +29,7 @@ Features
 Limitations
 -----------
 
-* Cygwin support is currrently broken as the kotlinc command in the kotlin distribution is broken (See http://youtrack.jetbrains.com/issue/KT-1470). Even when this is fixed cygwin is barely usable as the script is slow due to the high overhead of launching processes under Windows. 
+* Cygwin is supported, but the script is quite slow due to the high overhead of launching processes under Windows. 
 
 Examples
 --------
