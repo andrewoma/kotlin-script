@@ -5,7 +5,7 @@ fun main(args: Array<String>) {
 }
 
 class Hello {
-	fun sayHello() {
-	    println("Hello from Kotlin!")
-	}
+    fun sayHello() {
+        println("Hello from Kotlin!")
+    }
 }

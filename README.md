@@ -45,9 +45,9 @@ A script with an explicit main method:
     }
 
     class Hello {
-    	fun sayHello() {
-    	    println("Hello from Kotlin!")
-    	}
+        fun sayHello() {
+            println("Hello from Kotlin!")
+        }
     }
 
 A script using a classpath. Note: Using #!/usr/bin/env with options does not work across platforms. Either the actual path to the command must be used, or using indirection as shown below.
