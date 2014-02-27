@@ -141,6 +141,7 @@ if [ -f "$cmd" ]; then
             # If the command is a script, strip the script header and create a main method if necessary
             src="$cmd"
             if [ "#!" = "${line:0:2}" ]; then
+
                 sedOpts="1d"
                 [ "#!/bin/sh" != "${line:0:9}" ] || sedOpts="/#!/,/!#/d"
                 src="${temp}kotlin$$.kt"
@@ -151,6 +152,12 @@ if [ -f "$cmd" ]; then
                     sed "$sedOpts" "$cmd" >> "$src"
                     echo ' }' >> "$src"
                 fi
+
+                # Packages are necessary to develop multiple scripts in the IDE without
+                # the main method clashing in the default package. However, they aren't 
+                # useful from a script execution point of view.
+                sed -i '/^package /d' "$src"
+
                 delSrc="\"$src\""
             fi
             
