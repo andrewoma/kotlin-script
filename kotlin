@@ -156,7 +156,7 @@ if [ -f "$cmd" ]; then
                 # Packages are necessary to develop multiple scripts in the IDE without
                 # the main method clashing in the default package. However, they aren't 
                 # useful from a script execution point of view.
-                sed -i '/^package /d' "$src"
+                sed -ie '/^package /d' "$src"
 
                 delSrc="\"$src\""
             fi
