@@ -12,11 +12,13 @@ Provides scripting support for Kotlin on *nix-based systems. e.g.
 Installation
 ------------
 
-Assuming you have ~/bin and kotlinc in your PATH:
+Assuming you have `~/bin` and `kotlinc-jvm` in your `PATH`:
 
     $ curl https://raw.github.com/andrewoma/kotlin-script/master/kotlin > ~/bin/kotlin && chmod u+x ~/bin/kotlin 
 
-Otherwise, download the kotlin script to any location in your PATH.
+Otherwise, download the `kotlin` script to any location in your `PATH`.
+
+If you're looking for `kotlinc-jvm`, the continuous integration builds of the Kotlin compiler are available at JetBrains' [TeamCity CI server](http://teamcity.jetbrains.com/project.html?projectId=project67&tab=projectOverview). Log in as a guest and download the `kotlin-compiler-xxx.zip` artifact from the latest successful master build in the "Compiler and Plugin" section. 
 
 Features
 --------
