@@ -164,7 +164,7 @@ if [ -f "$cmd" ]; then
             # cat "$src"
 
             # Create a module, so the classpath can be applied
-            module="${temp}kotlin$$.kts"
+            module="${temp}kotlin$$.ktm"
             echo "import kotlin.modules.*" > $module
             echo "fun project() {" >> $module
             echo "    module(\"mymodule\", \"${temp}\") {" >> $module
