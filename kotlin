@@ -183,8 +183,8 @@ if [ -f "$cmd" ]; then
 
         set -e
         mkdir -p "$jarDir"
-        # echo kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
-        kotlinc-jvm -module "$(nativePath "$module")" -jar "$(nativePath "$jar")"
+        # echo kotlinc-jvm -module "$(nativePath "$module")" -d "$(nativePath "$jar")"
+        kotlinc-jvm -module "$(nativePath "$module")" -d "$(nativePath "$jar")"
     fi
 fi
 

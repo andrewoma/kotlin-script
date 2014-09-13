@@ -14,7 +14,7 @@ Installation
 
 Assuming you have `~/bin` and `kotlinc-jvm` in your `PATH`:
 
-    $ curl https://raw.github.com/andrewoma/kotlin-script/master/kotlin > ~/bin/kotlin && chmod u+x ~/bin/kotlin 
+    $ curl https://raw.githubusercontent.com/andrewoma/kotlin-script/master/kotlin > ~/bin/kotlin && chmod u+x ~/bin/kotlin 
 
 Otherwise, download the `kotlin` script to any location in your `PATH`.
 
@@ -104,7 +104,3 @@ mvncp can be used in conjunction with the kotlin script as follows:
         BasicConfigurator.configure();
         logger.info("Hello from Kotlin via log4j! mySysProp=${System.getProperty("mySysProp")}")
     }
-
-Alternatives
-------------
-Aztec (https://github.com/kondratovich/aztec) seems to be a Python based alternative
