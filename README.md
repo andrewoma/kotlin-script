@@ -104,3 +104,9 @@ mvncp can be used in conjunction with the kotlin script as follows:
         BasicConfigurator.configure();
         logger.info("Hello from Kotlin via log4j! mySysProp=${System.getProperty("mySysProp")}")
     }
+
+#### Alternatives
+[kotlin-scripting-kickstarter](https://github.com/andrewoma/kotlin-scripting-kickstarter) provides a Gradle based alternative. The main advantage of the kickstarter approach is that it supports full IDE development of scripts.
+
+#### Status
+Last verified Kotlin version: 0.10.195
