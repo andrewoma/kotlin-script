@@ -29,7 +29,7 @@ function tests() {
     assertEquals "script with class path" "`cd "$DIR/examples" && $DIR/examples/withclasspath`" "0 [main] INFO mymodule  - Hello from Kotlin via log4j! mySysProp=somevalue"    
     assertEquals "script with spaces" "`"$DIR/examples/with spaces"`" "Hello from Kotlin! args.size=0"  
     assertEquals "standard kotlin source file" "`kotlin "$DIR/examples/standardsource.kt" 1 2 3`" "Hello from Kotlin! args.size=3"  
-    assertEquals "standard kotlin module file" "`kotlin "$DIR/examples/standardmodule.ktm" 1 2 3`" "Hello from Kotlin! args.size=3" 
+    assertEquals "standard kotlin module file" "`kotlin "$DIR/examples/standardmodule.xml" 1 2 3`" "Hello from Kotlin! args.size=3" 
     
     end=$(date +"%s")
     diff=$(($end-$start))

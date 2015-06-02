@@ -135,7 +135,7 @@ if [ -f "$cmd" ]; then
         module="$cmd"
 
         # If the command isn't a module, create one automatically
-        if [ `grep -c 'import kotlin.modules' "$cmd"` -eq 0 ]; then
+        if [ `grep -c '</modules>' "$cmd"` -eq 0 ]; then
             line=`head -1 "$cmd"`
 
             # If the command is a script, strip the script header and create a main method if necessary
@@ -164,17 +164,16 @@ if [ -f "$cmd" ]; then
             # cat "$src"
 
             # Create a module, so the classpath can be applied
-            module="${temp}kotlin$$.ktm"
-            echo "import kotlin.modules.*" > $module
-            echo "fun project() {" >> $module
-            echo "    module(\"mymodule\", \"${temp}\") {" >> $module
-            echo "        sources += \"$(nativePath "$src")\"" >> $module
+            module="${temp}kotlin$$.xml"
+            echo "<modules>" > $module
+            echo "  <module name=\"mymodule\" outputDir=\"${temp}\">" >> $module
+            echo "    <sources path=\"$(nativePath "$src")\"/>" >> $module
             for i in $(echo $scriptCp | tr ":" "\n"); do
                 i=$(nativePath "$i")
-                echo "        classpath += \"$i\"" >> $module
-            done
-            echo "    }" >> $module
-            echo "}" >> $module
+                echo "    <classpath path=\"$i\"/>" >> $module
+            done            
+            echo "  </module>" >> $module
+            echo "</modules>" >> $module
 
             # cat "$module"
 
