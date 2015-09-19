@@ -1,5 +1,5 @@
 <modules>
-    <module name="mymodule" outputDir=".">
+    <module name="mymodule" outputDir="." type="TYPE_PRODUCTION">
         <sources path="standardsource.kt"/>
     </module>
 </modules>

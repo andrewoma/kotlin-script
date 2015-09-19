@@ -166,7 +166,7 @@ if [ -f "$cmd" ]; then
             # Create a module, so the classpath can be applied
             module="${temp}kotlin$$.xml"
             echo "<modules>" > $module
-            echo "  <module name=\"mymodule\" outputDir=\"${temp}\">" >> $module
+            echo "  <module name=\"mymodule\" outputDir=\"${temp}\" type=\"TYPE_PRODUCTION\">" >> $module
             echo "    <sources path=\"$(nativePath "$src")\"/>" >> $module
             for i in $(echo $scriptCp | tr ":" "\n"); do
                 i=$(nativePath "$i")

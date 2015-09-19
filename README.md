@@ -20,7 +20,7 @@ Otherwise, download the `kotlin` script to any location in your `PATH`.
 
 If you're looking for `kotlinc-jvm`, the continuous integration builds of the Kotlin compiler are available at JetBrains' [TeamCity CI server](http://teamcity.jetbrains.com/project.html?projectId=project67&tab=projectOverview). Log in as a guest and download the latest `pushedToMaven` `kotlin-compiler-xxx.zip` artifact in the "Compiler and Plugin" section. 
 
-The following [link](https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt345&tab=buildTypeHistoryList&branch_Kotlin=__all_branches__) works at the time of writing.
+M13 is availabled from [here](https://teamcity.jetbrains.com/viewLog.html?buildId=570959&buildTypeId=bt345&tab=artifacts).
 
 Features
 --------
@@ -111,4 +111,4 @@ mvncp can be used in conjunction with the kotlin script as follows:
 [kotlin-scripting-kickstarter](https://github.com/andrewoma/kotlin-scripting-kickstarter) provides a Gradle based alternative. The main advantage of the kickstarter approach is that it supports full IDE development of scripts.
 
 #### Status
-Last verified Kotlin version: 0.12.213
+Last verified Kotlin version: 0.13.1513
