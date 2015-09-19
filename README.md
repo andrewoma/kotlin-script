@@ -20,7 +20,7 @@ Otherwise, download the `kotlin` script to any location in your `PATH`.
 
 If you're looking for `kotlinc-jvm`, the continuous integration builds of the Kotlin compiler are available at JetBrains' [TeamCity CI server](http://teamcity.jetbrains.com/project.html?projectId=project67&tab=projectOverview). Log in as a guest and download the latest `pushedToMaven` `kotlin-compiler-xxx.zip` artifact in the "Compiler and Plugin" section. 
 
-M13 is availabled from [here](https://teamcity.jetbrains.com/viewLog.html?buildId=570959&buildTypeId=bt345&tab=artifacts).
+M13 is available from [here](https://teamcity.jetbrains.com/viewLog.html?buildId=570959&buildTypeId=bt345&tab=artifacts).
 
 Features
 --------
