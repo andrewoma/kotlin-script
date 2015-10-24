@@ -87,11 +87,11 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     *)
-      # First non-option is the executable. If it's a file then we need to replace it with '_DefaultPackage' as it will need to be compiled 
+      # First non-option is the executable. If it's a file then we need to replace it with 'MainKt' as it will need to be compiled 
       if [ "" = "$cmd" ]; then
         cmd="$1"
         if [ -f "$cmd" ]; then
-            kotlin_args=("${kotlin_args[@]}" "_DefaultPackage")
+            kotlin_args=("${kotlin_args[@]}" "MainKt")
         else
             kotlin_args=("${kotlin_args[@]}" "$1")
         fi 
@@ -139,12 +139,11 @@ if [ -f "$cmd" ]; then
             line=`head -1 "$cmd"`
 
             # If the command is a script, strip the script header and create a main method if necessary
-            src="$cmd"
+            src="${temp}main.kt"
             if [ "#!" = "${line:0:2}" ]; then
 
                 sedOpts="1d"
                 [ "#!/bin/sh" != "${line:0:9}" ] || sedOpts="/#!/,/!#/d"
-                src="${temp}kotlin$$.kt"
                 if [ `grep -c 'fun main(' "$cmd"` -ne 0 ]; then
                     sed "$sedOpts" "$cmd" >> "$src"
                 else
@@ -158,8 +157,10 @@ if [ -f "$cmd" ]; then
                 # useful from a script execution point of view.
                 sed -ie '/^package /d' "$src"
 
-                delSrc="\"$src\""
+            else
+              cp "$cmd" "$src"
             fi
+            delSrc="\"$src\""
             
             # cat "$src"
 
