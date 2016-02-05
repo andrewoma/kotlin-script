@@ -1,4 +1,4 @@
-#!/usr/bin/env kotlin
+#!/usr/bin/env kotlins
 
 fun main(args: Array<String>) {
     Hello().sayHello()

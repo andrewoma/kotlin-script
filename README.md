@@ -3,7 +3,7 @@ Kotlin Scripting Support
 
 Provides scripting support for Kotlin on *nix-based systems. e.g.
 
-    #!/usr/bin/env kotlin
+    #!/usr/bin/env kotlins
     println("Hello from Kotlin!")
     for (arg in args) {
         println("arg: $arg")
@@ -14,13 +14,13 @@ Installation
 
 Assuming you have `~/bin` and `kotlinc-jvm` in your `PATH`:
 
-    $ curl https://raw.githubusercontent.com/andrewoma/kotlin-script/master/kotlin > ~/bin/kotlin && chmod u+x ~/bin/kotlin 
+    $ curl -s https://raw.githubusercontent.com/andrewoma/kotlin-script/master/kotlins > ~/bin/kotlins && chmod u+x ~/bin/kotlins
 
-Otherwise, download the `kotlin` script to any location in your `PATH`.
+Otherwise, download the `kotlins` script to any location in your `PATH`.
 
-If you're looking for `kotlinc-jvm`, the continuous integration builds of the Kotlin compiler are available at JetBrains' [TeamCity CI server](http://teamcity.jetbrains.com/project.html?projectId=project67&tab=projectOverview). Log in as a guest and download the latest `pushedToMaven` `kotlin-compiler-xxx.zip` artifact in the "Compiler and Plugin" section. 
+If you're looking for `kotlinc-jvm`, the continuous integration builds of the Kotlin compiler are available at JetBrains' [TeamCity CI server](http://teamcity.jetbrains.com/project.html?projectId=project67&tab=projectOverview). Log in as a guest and download the latest `kotlin-compiler-xxx.zip` artifact in the "Compiler and Plugin" section that matches the Maven central release.
 
-1.0.0-beta-1038 is available from [here](https://teamcity.jetbrains.com/viewLog.html?buildId=602716&buildTypeId=bt345&tab=artifacts).
+1.0.0-rc-1036 is available from [here](https://teamcity.jetbrains.com/repository/download/bt345/691605:id/kotlin-compiler-1.0.0-rc-1036.zip).
 
 Features
 --------
@@ -43,7 +43,7 @@ There are various examples in the examples directory. Here are a subset of them:
 
 A script with an explicit main method:
 
-    #!/usr/bin/env kotlin
+    #!/usr/bin/env kotlins
 
     fun main(args: Array<String>) {
         Hello().sayHello()
@@ -58,7 +58,7 @@ A script with an explicit main method:
 A script using a classpath. Note: Using #!/usr/bin/env with options does not work across platforms. Either the actual path to the command must be used, or using indirection as shown below.
 
     #!/bin/sh 
-    exec kotlin -DmySysProp=somevalue -cp log4j-1.2.14.jar "$0" "$@"
+    exec kotlins -DmySysProp=somevalue -cp log4j-1.2.14.jar "$0" "$@"
     !#
     import org.apache.log4j.*
 
@@ -71,7 +71,7 @@ A script using a classpath. Note: Using #!/usr/bin/env with options does not wor
 
 Running a standard kotlin source file:
 
-    $ kotlin mykotlinfile.kt
+    $ kotlins mykotlinfile.kt
     
 mvncp
 -----
@@ -97,7 +97,7 @@ Example: show the dependency tree
 mvncp can be used in conjunction with the kotlin script as follows:
 
     #!/bin/sh 
-    exec kotlin -DmySysProp=somevalue -cp `mvncp log4j:log4j:1.2.14` "$0" "$@"
+    exec kotlins -DmySysProp=somevalue -cp `mvncp log4j:log4j:1.2.14` "$0" "$@"
     !#
     import org.apache.log4j.*
 
@@ -112,4 +112,4 @@ mvncp can be used in conjunction with the kotlin script as follows:
 [kotlin-scripting-kickstarter](https://github.com/andrewoma/kotlin-scripting-kickstarter) provides a Gradle based alternative. The main advantage of the kickstarter approach is that it supports full IDE development of scripts.
 
 #### Status
-Last verified Kotlin version: 1.0.0-beta-1038
+Last verified Kotlin version: 1.0.0-rc-1036

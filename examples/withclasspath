@@ -1,5 +1,5 @@
 #!/bin/sh 
-exec kotlin -DmySysProp=somevalue -cp log4j-1.2.14.jar "$0" "$@"
+exec kotlins -DmySysProp=somevalue -cp log4j-1.2.14.jar "$0" "$@"
 !#
 import org.apache.log4j.*
 

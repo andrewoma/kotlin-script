@@ -1,2 +1,2 @@
-#!/usr/bin/env kotlin
+#!/usr/bin/env kotlins
 println("Hello from Kotlin! args.size=${args.size}")
