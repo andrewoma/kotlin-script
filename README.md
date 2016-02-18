@@ -18,9 +18,8 @@ Assuming you have `~/bin` and `kotlinc-jvm` in your `PATH`:
 
 Otherwise, download the `kotlins` script to any location in your `PATH`.
 
-If you're looking for `kotlinc-jvm`, the continuous integration builds of the Kotlin compiler are available at JetBrains' [TeamCity CI server](http://teamcity.jetbrains.com/project.html?projectId=project67&tab=projectOverview). Log in as a guest and download the latest `kotlin-compiler-xxx.zip` artifact in the "Compiler and Plugin" section that matches the Maven central release.
-
-1.0.0-rc-1036 is available from [here](https://teamcity.jetbrains.com/repository/download/bt345/691605:id/kotlin-compiler-1.0.0-rc-1036.zip).
+If you're looking for `kotlinc-jvm`, it is available via homebrew or 1.0.0 can be
+downloaded from [here](https://github.com/JetBrains/kotlin/releases/download/build-1.0.0/kotlin-compiler-1.0.0.zip).
 
 Features
 --------
@@ -112,4 +111,4 @@ mvncp can be used in conjunction with the kotlin script as follows:
 [kotlin-scripting-kickstarter](https://github.com/andrewoma/kotlin-scripting-kickstarter) provides a Gradle based alternative. The main advantage of the kickstarter approach is that it supports full IDE development of scripts.
 
 #### Status
-Last verified Kotlin version: 1.0.0-rc-1036
+Last verified Kotlin version: 1.0.0
