@@ -18,8 +18,8 @@ Assuming you have `~/bin` and `kotlinc-jvm` in your `PATH`:
 
 Otherwise, download the `kotlins` script to any location in your `PATH`.
 
-If you're looking for `kotlinc-jvm`, it is available via homebrew or 1.0.0 can be
-downloaded from [here](https://github.com/JetBrains/kotlin/releases/download/build-1.0.0/kotlin-compiler-1.0.0.zip).
+If you're looking for `kotlinc-jvm`, it is available via homebrew or 1.0.4 can be
+downloaded from [here](https://github.com/JetBrains/kotlin/releases/download/v1.0.4/kotlin-compiler-1.0.4.zip).
 
 Features
 --------
@@ -111,4 +111,4 @@ mvncp can be used in conjunction with the kotlin script as follows:
 [kotlin-scripting-kickstarter](https://github.com/andrewoma/kotlin-scripting-kickstarter) provides a Gradle based alternative. The main advantage of the kickstarter approach is that it supports full IDE development of scripts.
 
 #### Status
-Last verified Kotlin version: 1.0.0
+Last verified Kotlin version: 1.0.4
