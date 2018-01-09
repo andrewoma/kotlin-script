@@ -1,3 +1,8 @@
+
+This project is no longer supported. 
+
+See https://github.com/holgerbrandl/kscript for an actively maintained alternative.
+
 Kotlin Scripting Support
 ========================
 
